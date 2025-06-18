@@ -1,0 +1,8 @@
+*.o
+
+*~
+*.swpi
+
+.vscode/
+.DS_Store
+.idea/
