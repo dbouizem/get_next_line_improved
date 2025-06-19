@@ -117,3 +117,126 @@ while ((line = get_next_line(fd))) {
 close(fd);
 ```
 
+---
+
+## Exemple d'exécution pas à pas
+
+Prenons un fichier dont le contenu est :
+
+```text
+Hello
+
+World
+
+```
+
+et `BUFFER_SIZE = 8`. Nous appelons trois fois `get_next_line(fd)` pour extraire successivement chaque ligne.
+
+### État initial
+
+* **`stock = NULL`**
+* Fichier positionné à l’octet 0 : `H e l l o 
+   W o r l d 
+  `
+
+### Appel #1 à `get_next_line(fd)`
+
+1. **Initialisation**
+
+   * `stock = NULL`
+   * Vérifications : `fd` valide, `BUFFER_SIZE > 0`, `read(fd, NULL,0)` ok.
+2. **Lecture via `read_file`**
+
+   * `buff = malloc(8)`
+   * `buf.data = NULL, buf.len = 0, buf.capacity = 0`
+   * `br = read(fd, buff, 8)` → lit `"Hello
+     Wo"` (8 octets)
+   * Appel de `read_loop(fd, buff, 8, buf)`
+3. **Dans `read_loop`**
+
+   * **Extend** : capacité 0 → new\_cap = 8+1 = 9
+   * **Copie** : `buf.data = "Hello
+     Wo"`, `buf.len = 8`, `'�'` ajouté
+   * \*\*Détection
+     \*\* : trouvé à l’indice 5 → sortie
+   * **Retour** : `buf.data = "Hello
+     Wo"`
+4. **Extraction de la ligne**
+
+   * `len = 6` ("Hello
+     ")
+   * `line = malloc(7); strlcpy(line, stock, 7)` → `"Hello
+     "`
+5. **Mise à jour `stock`**
+
+   * `next_line("Hello
+     Wo")` → `"Wo"`
+
+> **Résultat appel #1** : renvoie `"Hello
+> "`, nouveau `stock = "Wo"`
+
+### Appel #2 à `get_next_line(fd)`
+
+1. **Initialisation**
+
+   * `stock = "Wo"`
+2. **Lecture via `read_file`**
+
+   * `buff = malloc(8)`
+   * Réinjection : `buf.data = "Wo"`, `buf.len = 2`, `buf.capacity = 3`
+   * `br = read(fd, buff, 8)` → lit `"rld
+     "` (4 octets)
+   * Appel de `read_loop(fd, buff, 4, buf)`
+3. **Dans `read_loop`**
+
+   * **Extend** : capacity 3 < 2+4+1=7 → new\_cap = 6 → <7 → new\_cap=12
+   * **Copie** : `buf.data = "World
+     "`, `buf.len = 6`
+   * \*\*Détection
+     \*\* : trouvé à l’indice 3 → sortie
+   * **Retour** : `buf.data = "World
+     "`
+4. **Extraction de la ligne**
+
+   * `len = 6`; `line = "World
+     "`
+5. **Mise à jour `stock`**
+
+   * `next_line("World
+     ")` → `NULL`
+
+> **Résultat appel #2** : renvoie `"World
+> "`, nouveau `stock = NULL`
+
+### Appel #3 à `get_next_line(fd)`
+
+* `stock = NULL`
+* `read_file(fd, NULL)` lit `br = 0` (EOF)
+* `read_loop` renvoie `buf.data = NULL`
+* `get_next_line` renvoie `NULL` (fin de fichier)
+
+---
+
+**Récapitulatif**
+
+|                     Appel                     | Valeur renvoyée | `stock` après |
+| :-------------------------------------------: | :-------------: | :-----------: |
+|                       1                       |     \`"Hello    |               |
+|                      "\`                      |      `"Wo"`     |               |
+|                       2                       |     \`"World    |               |
+|                      "\`                      |      `NULL`     |               |
+|                       3                       |      `NULL`     |       —       |
+|                       c                       |                 |               |
+| int fd = open("mon\_fichier.txt", O\_RDONLY); |                 |               |
+|                  char \*line;                 |                 |               |
+|     while ((line = get\_next\_line(fd))) {    |                 |               |
+
+```
+printf("%s", line);
+free(line);
+```
+
+}
+close(fd);
+
+```
