@@ -214,29 +214,3 @@ et `BUFFER_SIZE = 8`. Nous appelons trois fois `get_next_line(fd)` pour extraire
 * `read_file(fd, NULL)` lit `br = 0` (EOF)
 * `read_loop` renvoie `buf.data = NULL`
 * `get_next_line` renvoie `NULL` (fin de fichier)
-
----
-
-**Récapitulatif**
-
-|                     Appel                     | Valeur renvoyée | `stock` après |
-| :-------------------------------------------: | :-------------: | :-----------: |
-|                       1                       |     \`"Hello    |               |
-|                      "\`                      |      `"Wo"`     |               |
-|                       2                       |     \`"World    |               |
-|                      "\`                      |      `NULL`     |               |
-|                       3                       |      `NULL`     |       —       |
-|                       c                       |                 |               |
-| int fd = open("mon\_fichier.txt", O\_RDONLY); |                 |               |
-|                  char \*line;                 |                 |               |
-|     while ((line = get\_next\_line(fd))) {    |                 |               |
-
-```
-printf("%s", line);
-free(line);
-```
-
-}
-close(fd);
-
-```
