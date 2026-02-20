@@ -123,7 +123,8 @@ char	*get_next_line(int fd)
 
 	if (fd < 0 || BUFFER_SIZE <= 0 || read(fd, NULL, 0) < 0)
 		return (free(stock), stock = NULL, NULL);
-	stock = read_file(fd, stock);
+	if (!stock || !ft_strchr(stock, '\n'))
+		stock = read_file(fd, stock);
 	if (!stock || !*stock)
 		return (free(stock), stock = NULL, NULL);
 	len = 0;

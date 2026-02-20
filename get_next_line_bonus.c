@@ -67,7 +67,6 @@ static char	*read_file(int fd, char *stock)
 {
 	t_dynbuf	buf;
 	char		*buff;
-	ssize_t		br;
 	size_t		len;
 
 	buff = malloc(BUFFER_SIZE);
@@ -77,19 +76,19 @@ static char	*read_file(int fd, char *stock)
 	if (stock)
 	{
 		len = 0;
-		while (stock[len])
+		while (stock[len] && stock[len] != '\n')
 			len++;
+		if (stock[len] == '\n')
+			return (free(buff), stock);
 		buf.data = malloc(len + 1);
 		if (!buf.data)
 			return (free(buff), free(stock), NULL);
-		buf.capacity = len + 1;
 		ft_memcpy(buf.data, stock, len);
 		buf.data[len] = '\0';
-		buf.len = len;
+		buf = (t_dynbuf){buf.data, len, len + 1};
 		free(stock);
 	}
-	br = read(fd, buff, BUFFER_SIZE);
-	return (read_loop(fd, buff, br, buf));
+	return (read_loop(fd, buff, read(fd, buff, BUFFER_SIZE), buf));
 }
 
 static char	*next_line(char *stock)
